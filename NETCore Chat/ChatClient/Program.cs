@@ -1,10 +1,14 @@
-﻿using System;
+﻿using System.Net;
+using System.Threading.Tasks;
 
 namespace ChatClient {
     class Program {
-        static void Main(string[] args)
+        
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
+            await new Client().Start(IPAddress.Parse("127.0.0.1"), 8000);
+
         }
     }
 }
