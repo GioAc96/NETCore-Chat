@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using ChatShared;
+using ChatShared.SDK.Messages;
+using ChatShared.SDK.Payload;
 
 namespace ChatClient
 {
@@ -19,13 +21,9 @@ namespace ChatClient
 
             using var connection = new Connection(tcpClient.GetStream());
 
-            var name = PromptForName();
+            var userName = PromptForName();
             
-            await connection.SendDataAsync(name);
-
-            var id = int.Parse(await connection.ReceiveDataAsync());
-
-            User user = new User(id, name);
+            var user = await ClientHandshake(connection, userName);
             
             Console.WriteLine($"Hello {user}");
             
@@ -36,9 +34,20 @@ namespace ChatClient
 
                 var message = PromptForMessage();
 
-                await connection.SendDataAsync(message);
+                await connection.SendMessageAsync(new SendMessage(new ChatMessagePayload(message)));
 
             }
+
+        }
+
+        private async Task<UserPayload> ClientHandshake(Connection connection, string userName)
+        {
+
+            await connection.SendMessageAsync(new MyNameIsMessage(userName));
+
+            var userId = (await connection.ReceiveMessageAsync<HelloMessage>()).UserId;
+
+            return new UserPayload(userId, userName);
 
         }
         

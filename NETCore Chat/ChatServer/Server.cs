@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using ChatShared;
+using ChatShared.SDK.Messages;
+using ChatShared.SDK.Payload;
 
 namespace ChatServer
 {
@@ -39,25 +41,33 @@ namespace ChatServer
 
             using var connection = new Connection(tcpClient.GetStream());
 
-            var userName = await connection.ReceiveDataAsync();
-            var userId = _idProvider.NewId();
-
-            var user = new User(userId, userName);
-
-            await connection.SendDataAsync(userId.ToString());
+            var user = await ServerHandshake(connection);
             
             _clients.AddFirst(new ConnectedClient(user, connection));
-            
+
             var token = new CancellationToken();
 
             while (!token.IsCancellationRequested)
             {
 
-                var messageBody = await connection.ReceiveDataAsync();
+                var messageBody = (await connection.ReceiveMessageAsync<SendMessage>()).ChatMessage.Body;
 
                 Console.WriteLine($"{user} says: {messageBody}");
 
             }
+
+        }
+
+        private async Task<UserPayload> ServerHandshake(Connection connection)
+        {
+
+            var userName = (await connection.ReceiveMessageAsync<MyNameIsMessage>()).UserName;
+
+            var userId = _idProvider.NewId();
+
+            await connection.SendMessageAsync(new HelloMessage(userId));
+
+            return new UserPayload(userId, userName);
 
         }
         
