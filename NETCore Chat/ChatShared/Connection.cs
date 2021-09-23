@@ -1,52 +1,62 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using ProtoBuf;
 
 namespace ChatShared
 {
     public class Connection : IDisposable
     {
 
-        private readonly StreamReader _reader;
-        private readonly StreamWriter _writer;
+        private const PrefixStyle PrefixStyle = ProtoBuf.PrefixStyle.Base128; 
+
+        private readonly Stream _stream;
         
         public Connection(Stream stream)
         {
 
-            _reader = new StreamReader(stream);
-            _writer = new StreamWriter(stream);
+            _stream = stream;
 
         }
 
-        public async Task SendDataAsync(string data)
+        public async Task SendMessageAsync<T>(T message)
         {
-            await _writer.WriteLineAsync(data);
-            await _writer.FlushAsync();
-        }
 
-        public async Task<string> ReceiveDataAsync()
-        {
-            return await _reader.ReadLineAsync();
-        }
-        
-        
-        public void SendData(string data)
-        {
-            
-            SendDataAsync(data).GetAwaiter().GetResult();
+            await Task.Run(() =>
+            {
+                
+                SendMessage(message);
+
+            });
             
         }
-
-        public string ReceiveData()
+        
+        public void SendMessage<T>(T message)
         {
-            return ReceiveDataAsync().GetAwaiter().GetResult();
+
+            Serializer.SerializeWithLengthPrefix(_stream, message, PrefixStyle);
+            _stream.Flush();
+            
+        }
+
+        public T ReceiveMessage<T>()
+        {
+
+            return Serializer.DeserializeWithLengthPrefix<T>(_stream, PrefixStyle);
+            
+        }
+
+        public async Task<T> ReceiveMessageAsync<T>()
+        {
+
+            return await Task.Run(ReceiveMessage<T>);
+
         }
         
         public void Dispose()
         {
             
-            _reader.Dispose();
-            _writer.Dispose();
+            _stream.Dispose();
             
         }
         
