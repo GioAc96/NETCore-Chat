@@ -1,10 +1,19 @@
 ﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace ChatServer {
-    class Program {
-        static void Main(string[] args)
+    
+    static class Program {
+        
+        private const int Port = 8000;
+        private static readonly IPAddress Address = IPAddress.Any;
+
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+
+            await new Server().Start(Address, Port);
+
         }
     }
 }
