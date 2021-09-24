@@ -5,7 +5,7 @@ namespace ChatShared.SDK.Messages
 {
     
     [ProtoContract]
-    public class SendMessage
+    public class SendMessage : IMessage
     {
 
         [ProtoMember(1)]

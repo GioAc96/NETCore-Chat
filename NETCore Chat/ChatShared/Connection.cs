@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using ChatShared.SDK.Messages;
 using ProtoBuf;
 
 namespace ChatShared
@@ -19,7 +20,7 @@ namespace ChatShared
 
         }
 
-        public async Task SendMessageAsync<T>(T message)
+        public async Task SendMessageAsync<T>(T message) where T : IMessage
         {
 
             await Task.Run(() =>
@@ -31,7 +32,7 @@ namespace ChatShared
             
         }
         
-        public void SendMessage<T>(T message)
+        public void SendMessage<T>(T message) where T : IMessage
         {
 
             Serializer.SerializeWithLengthPrefix(_stream, message, PrefixStyle);
@@ -39,14 +40,14 @@ namespace ChatShared
             
         }
 
-        public T ReceiveMessage<T>()
+        public T ReceiveMessage<T>() where T : IMessage
         {
 
             return Serializer.DeserializeWithLengthPrefix<T>(_stream, PrefixStyle);
             
         }
 
-        public async Task<T> ReceiveMessageAsync<T>()
+        public async Task<T> ReceiveMessageAsync<T>() where T : IMessage
         {
 
             return await Task.Run(ReceiveMessage<T>);

@@ -4,7 +4,7 @@ namespace ChatShared.SDK.Messages
 {
     
     [ProtoContract]
-    public class HelloMessage
+    public class HelloMessage : HandshakeResultMessage
     {
 
         [ProtoMember(1)]

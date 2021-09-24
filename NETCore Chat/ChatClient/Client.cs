@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using ChatShared;
 using ChatShared.SDK.Messages;
@@ -19,10 +20,8 @@ namespace ChatClient
             await tcpClient.ConnectAsync(address, port);
 
             using var connection = new Connection(tcpClient.GetStream());
-
-            var userName = PromptForName();
             
-            var user = await ClientHandshake(connection, userName);
+            var user = await ClientHandshake(connection);
             
             Console.WriteLine($"Hello {user}");
 
@@ -30,14 +29,35 @@ namespace ChatClient
 
         }
 
-        private async Task<UserPayload> ClientHandshake(Connection connection, string userName)
+        private async Task<UserPayload> ClientHandshake(Connection connection)
         {
 
-            await connection.SendMessageAsync(new MyNameIsMessage(userName));
+            var token = new CancellationToken();
 
-            var userId = (await connection.ReceiveMessageAsync<HelloMessage>()).UserId;
+            while (!token.IsCancellationRequested)
+            {
 
-            return new UserPayload(userId, userName);
+                var userName = PromptForName();
+                
+                await connection.SendMessageAsync(new MyNameIsMessage(userName));
+                
+                var handshakeResult = await connection.ReceiveMessageAsync<HandshakeResultMessage>();
+
+                if (handshakeResult is HelloMessage helloMessage)
+                {
+
+                    return new UserPayload(helloMessage.UserId, userName);
+
+                } else if (handshakeResult is NameTakenMessage)
+                {
+                    
+                    Console.WriteLine("Name is already taken.");
+                    
+                }
+                
+            }
+
+            throw new OperationCanceledException();
 
         }
         
