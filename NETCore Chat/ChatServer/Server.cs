@@ -50,9 +50,22 @@ namespace ChatServer
             while (!token.IsCancellationRequested)
             {
 
-                var messageBody = (await connection.ReceiveMessageAsync<SendMessage>()).ChatMessage.Body;
+                var receivedChatMessage = (await connection.ReceiveMessageAsync<SendMessage>()).ChatMessage;
 
-                Console.WriteLine($"{user} says: {messageBody}");
+                Console.Write($"{user} says: ");
+                Console.WriteLine(receivedChatMessage.Body);
+                
+                foreach (ConnectedClient client in _clients)
+                {
+
+                    if (client.User.Id != user.Id)
+                    {
+
+                        await client.Connection.SendMessageAsync(new ForwardMessage(user, receivedChatMessage));
+
+                    }
+                    
+                }
 
             }
 
