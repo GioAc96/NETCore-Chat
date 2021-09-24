@@ -4,22 +4,22 @@ using ProtoBuf;
 namespace ChatShared.SDK.Messages
 {
     [ProtoContract]
-    public class ForwardMessage : IMessage
+    public class ForwardText : IMessage
     {
 
         [ProtoMember(1)]
-        public readonly ChatMessagePayload ChatMessage;
+        public readonly TextPayload Text;
 
         [ProtoMember(2)]
         public readonly UserPayload Sender;
 
-        public ForwardMessage(UserPayload sender, ChatMessagePayload chatMessage)
+        public ForwardText(UserPayload sender, TextPayload text)
         {
             Sender = sender;
-            ChatMessage = chatMessage;
+            Text = text;
         }
         
-        private ForwardMessage() {}
+        private ForwardText() {}
         
     }
 }

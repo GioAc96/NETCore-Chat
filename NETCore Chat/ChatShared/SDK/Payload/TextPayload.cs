@@ -3,17 +3,17 @@
 namespace ChatShared.SDK.Payload
 {
     [ProtoContract]
-    public class ChatMessagePayload {
+    public class TextPayload {
 
         [ProtoMember(1)]
         public readonly string Body;
 
-        public ChatMessagePayload(string body)
+        public TextPayload(string body)
         {
             Body = body;
         }
         
-        private ChatMessagePayload() {}
+        private TextPayload() {}
 
         public override string ToString()
         {
