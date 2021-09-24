@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using System;
+using ProtoBuf;
 
 namespace ChatShared.SDK.Messages
 {
@@ -8,9 +9,9 @@ namespace ChatShared.SDK.Messages
     {
 
         [ProtoMember(1)]
-        public readonly int UserId;
+        public readonly Guid UserId;
 
-        public HelloMessage(int userId)
+        public HelloMessage(Guid userId)
         {
             UserId = userId;
         }

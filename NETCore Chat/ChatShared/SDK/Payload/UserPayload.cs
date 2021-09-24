@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using System;
+using ProtoBuf;
 
 namespace ChatShared.SDK.Payload
 {
@@ -6,12 +7,12 @@ namespace ChatShared.SDK.Payload
     public class UserPayload {
 
         [ProtoMember(1)]
-        public readonly int Id;
+        public readonly Guid Id;
         
         [ProtoMember(2)]
         public readonly string Name;
 
-        public UserPayload(int id, string name)
+        public UserPayload(Guid id, string name)
         {
             
             Id = id;
@@ -24,7 +25,7 @@ namespace ChatShared.SDK.Payload
         public override string ToString()
         {
 
-            return $"{Name} #{Id}";
+            return $"{Name}";
 
         }
     }

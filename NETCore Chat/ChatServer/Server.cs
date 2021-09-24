@@ -15,7 +15,6 @@ namespace ChatServer
 
         private readonly HashSet<string> _userNameIndex = new HashSet<string>();
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
-        private readonly IUserIdProvider _idProvider = new IncrementingIntegerUserIdProvider();
 
         public async Task Start(IPAddress address, int port)
         {
@@ -56,7 +55,7 @@ namespace ChatServer
         {
 
             var userName = await ReceiveValidUserName(connection);
-            var userId = _idProvider.NewId();
+            var userId = Guid.NewGuid();
             
             await connection.SendMessageAsync(new HelloMessage(userId));
 
