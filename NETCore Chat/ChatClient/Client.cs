@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 using ChatShared;
 using ChatShared.SDK.Messages;
@@ -26,17 +25,8 @@ namespace ChatClient
             var user = await ClientHandshake(connection, userName);
             
             Console.WriteLine($"Hello {user}");
-            
-            var token = new CancellationToken();
 
-            while (! token.IsCancellationRequested)
-            {
-
-                var message = PromptForMessage();
-
-                await connection.SendMessageAsync(new SendMessage(new ChatMessagePayload(message)));
-
-            }
+            await StartChatting(connection);
 
         }
 
@@ -64,6 +54,50 @@ namespace ChatClient
             Console.WriteLine("Type a message: ");
             return Console.ReadLine();
 
+        }
+
+        private async Task StartChatting(Connection connection)
+        {
+            
+            StartReceivingMessages(connection);
+            await StartSendingMessages(connection);
+
+        }
+
+        private async Task StartSendingMessages(Connection connection)
+        {
+
+            while (true)
+            {
+
+                Console.Write("Type your message: ");
+                var messageBody = Console.ReadLine();
+                Console.WriteLine();
+
+                await connection.SendMessageAsync(new SendMessage(
+
+                    new ChatMessagePayload(messageBody)
+
+                ));
+
+            }
+            
+        }
+
+        private async Task StartReceivingMessages(Connection connection)
+        {
+
+            while (true)
+            {
+
+                var receiveMessage = await connection.ReceiveMessageAsync<ForwardMessage>();
+                
+                Console.WriteLine();
+                Console.WriteLine($"{receiveMessage.Sender} says: {receiveMessage.ChatMessage.Body}");
+                Console.Write("Type your message: ");
+                
+            }
+            
         }
         
     }
