@@ -4,7 +4,7 @@ namespace ChatShared.SDK.Messages
 {
     
     [ProtoContract]
-    public class MyNameIsMessage
+    public class MyNameIsMessage : IMessage
     {
 
         [ProtoMember(1)]
@@ -18,4 +18,5 @@ namespace ChatShared.SDK.Messages
         private MyNameIsMessage(){}
         
     }
+    
 }
