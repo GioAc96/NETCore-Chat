@@ -43,6 +43,14 @@ namespace ChatServer
                 return _chatRepository.GetTexts().Count(text => text.Sender.Equals(user));
 
             }
+
+            public IEnumerable<ChatText> GetAllTexts()
+            {
+
+                return _chatRepository.GetTexts();
+
+            }
+            
         }
         
         public static IChatService GetInstance()
@@ -59,6 +67,8 @@ namespace ChatServer
         User? GetUserById(Guid userId);
 
         int GetMessagesCount(User user);
+
+        IEnumerable<ChatText> GetAllTexts();
 
     }
     

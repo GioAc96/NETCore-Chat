@@ -6,8 +6,8 @@ namespace ChatServer.Model
     public class ChatText
     {
 
-        public readonly string Text;
-        public readonly User Sender;
+        public string Text {get;}
+        public User Sender {get;}
 
         public ChatText(User sender, string text)
         {
