@@ -11,7 +11,7 @@ using ChatShared.SDK.Messages;
 
 namespace ChatServer.Chat
 {
-    public class ChatServer : IChatService
+    public class ChatServer : IChatRepository
     {
 
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
@@ -180,32 +180,14 @@ namespace ChatServer.Chat
             
         }
 
+        public IEnumerable<ChatText> GetTexts()
+        {
+            return _texts;
+        }
+
         public IEnumerable<User> GetConnectedUsers()
         {
-
-            return _clients.Select(client => client.User);
-
-        }
-        
-        public User GetUserByName(string userName)
-        {
-
-            return (from client in _clients where client.User.Name.Equals(userName) select client.User)
-                .FirstOrDefault();
-
-        }
-
-        public User GetUserById(Guid userId)
-        {
-            return (from client in _clients where client.User.Id.Equals(userId) select client.User)
-                .FirstOrDefault();
-        }
-
-        public int GetMessagesCount(User user)
-        {
-
-            return _texts.Count(text => text.Sender.Equals(user));
-
+            return (from client in _clients select client.User);
         }
     }
     

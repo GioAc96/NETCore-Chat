@@ -4,12 +4,13 @@ using ChatServer.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatServer.Rest.Controllers {
+    
     [ApiController]
     [Route("[controller]/")]
     public class UsersController : ControllerBase
     {
 
-        private static readonly IChatService ChatService = ChatServerProvider.GetInstance();
+        private static readonly IChatService ChatService = IChatService.GetInstance();
 
         public class UserDetails : User
         {
@@ -62,4 +63,5 @@ namespace ChatServer.Rest.Controllers {
         }
         
     }
+    
 }
