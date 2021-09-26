@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ChatClient {
+namespace ChatClient.Rest {
     public class Startup {
         public Startup(IConfiguration configuration)
         {

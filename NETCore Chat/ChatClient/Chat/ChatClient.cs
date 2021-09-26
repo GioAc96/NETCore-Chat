@@ -7,7 +7,7 @@ using ChatShared;
 using ChatShared.SDK.Messages;
 using ChatShared.SDK.Payload;
 
-namespace ChatClient
+namespace ChatClient.Chat
 {
     public class ChatClient
     {
