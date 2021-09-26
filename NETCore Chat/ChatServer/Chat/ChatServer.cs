@@ -5,13 +5,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ChatServer.Model;
 using ChatShared;
 using ChatShared.SDK.Messages;
-using ChatShared.SDK.Payload;
 
 namespace ChatServer.Chat
 {
-    public class ChatServer
+    public class ChatServer : IChatService
     {
 
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
@@ -42,7 +42,7 @@ namespace ChatServer.Chat
 
             using var connection = new Connection(tcpClient.GetStream());
 
-            UserPayload user;
+            User user;
             
             try
             {
@@ -64,7 +64,7 @@ namespace ChatServer.Chat
 
         }
 
-        private async Task<UserPayload> ServerHandshake(
+        private async Task<User> ServerHandshake(
             Connection connection
         )
         {
@@ -74,7 +74,7 @@ namespace ChatServer.Chat
             
             await connection.SendMessageAsync(new HelloMessage(userId));
 
-            return new UserPayload(userId, userName);
+            return new User(userId, userName);
             
         }
 
@@ -121,7 +121,7 @@ namespace ChatServer.Chat
                     Console.Write($"{client.User} says: ");
                     Console.WriteLine(message.Text.Body);
                     
-                    ForwardChatText(new ChatText(client.User, message.Text));
+                    ForwardChatText(new ChatText(client.User, message.Text.Body));
                     
                 }
                 catch (Exception)
@@ -141,8 +141,9 @@ namespace ChatServer.Chat
             
             foreach (var client in _clients.Where(client => ! client.User.Equals(chatText.Sender)))
             {
-                
-                SendMessageToConnectedClient(new ForwardTextMessage(chatText.Sender, chatText.Text), client);
+
+                var message = new ForwardTextMessage(chatText.Sender.ToPayload(), chatText.ToPayload());
+                SendMessageToConnectedClient(message, client);
                 
             }
 
@@ -178,7 +179,34 @@ namespace ChatServer.Chat
             _clients.Remove(client);
             
         }
+
+        public IEnumerable<User> GetConnectedUsers()
+        {
+
+            return _clients.Select(client => client.User);
+
+        }
         
+        public User GetUserByName(string userName)
+        {
+
+            return (from client in _clients where client.User.Name.Equals(userName) select client.User)
+                .FirstOrDefault();
+
+        }
+
+        public User GetUserById(Guid userId)
+        {
+            return (from client in _clients where client.User.Id.Equals(userId) select client.User)
+                .FirstOrDefault();
+        }
+
+        public int GetMessagesCount(User user)
+        {
+
+            return _texts.Count(text => text.Sender.Equals(user));
+
+        }
     }
     
 }

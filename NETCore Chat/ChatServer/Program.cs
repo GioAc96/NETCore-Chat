@@ -15,7 +15,7 @@ namespace ChatServer {
         public static async Task Main(string[] args)
         {
 
-            var chatServer = new ChatServer.Chat.ChatServer();
+            var chatServer = ChatServerProvider.GetInstance();
 
             chatServer.Start(ChatIpAddress, ChatPort);
             
