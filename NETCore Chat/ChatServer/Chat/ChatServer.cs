@@ -9,15 +9,15 @@ using ChatShared;
 using ChatShared.SDK.Messages;
 using ChatShared.SDK.Payload;
 
-namespace ChatServer
+namespace ChatServer.Chat
 {
-    public class Server
+    public class ChatServer
     {
 
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
         private readonly LinkedList<ChatText> _texts = new LinkedList<ChatText>();
 
-        public async Task Start(IPAddress address, int port)
+        public async void Start(IPAddress address, int port)
         {
             
             var tcpListener = new TcpListener(address, port);

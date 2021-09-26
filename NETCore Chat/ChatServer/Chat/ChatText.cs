@@ -1,6 +1,7 @@
-﻿using ChatShared.SDK.Payload;
+﻿
+using ChatShared.SDK.Payload;
 
-namespace ChatServer
+namespace ChatServer.Chat
 {
     public class ChatText
     {

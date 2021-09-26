@@ -1,7 +1,7 @@
 ﻿using ChatShared;
 using ChatShared.SDK.Payload;
 
-namespace ChatServer
+namespace ChatServer.Chat
 {
     public readonly struct ConnectedClient
     {
