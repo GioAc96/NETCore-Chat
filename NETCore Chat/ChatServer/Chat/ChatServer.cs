@@ -5,19 +5,19 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ChatServer.Model;
 using ChatShared;
 using ChatShared.SDK.Messages;
-using ChatShared.SDK.Payload;
 
-namespace ChatServer
+namespace ChatServer.Chat
 {
-    public class Server
+    public class ChatServer : IChatRepository
     {
 
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
         private readonly LinkedList<ChatText> _texts = new LinkedList<ChatText>();
 
-        public async Task Start(IPAddress address, int port)
+        public async void Start(IPAddress address, int port)
         {
             
             var tcpListener = new TcpListener(address, port);
@@ -42,7 +42,7 @@ namespace ChatServer
 
             using var connection = new Connection(tcpClient.GetStream());
 
-            UserPayload user;
+            User user;
             
             try
             {
@@ -64,7 +64,7 @@ namespace ChatServer
 
         }
 
-        private async Task<UserPayload> ServerHandshake(
+        private async Task<User> ServerHandshake(
             Connection connection
         )
         {
@@ -74,7 +74,7 @@ namespace ChatServer
             
             await connection.SendMessageAsync(new HelloMessage(userId));
 
-            return new UserPayload(userId, userName);
+            return new User(userId, userName);
             
         }
 
@@ -121,7 +121,7 @@ namespace ChatServer
                     Console.Write($"{client.User} says: ");
                     Console.WriteLine(message.Text.Body);
                     
-                    ForwardChatText(new ChatText(client.User, message.Text));
+                    ForwardChatText(new ChatText(client.User, message.Text.Body));
                     
                 }
                 catch (Exception)
@@ -141,8 +141,9 @@ namespace ChatServer
             
             foreach (var client in _clients.Where(client => ! client.User.Equals(chatText.Sender)))
             {
-                
-                SendMessageToConnectedClient(new ForwardTextMessage(chatText.Sender, chatText.Text), client);
+
+                var message = new ForwardTextMessage(chatText.Sender.ToPayload(), chatText.ToPayload());
+                SendMessageToConnectedClient(message, client);
                 
             }
 
@@ -178,7 +179,16 @@ namespace ChatServer
             _clients.Remove(client);
             
         }
-        
+
+        public IEnumerable<ChatText> GetTexts()
+        {
+            return _texts;
+        }
+
+        public IEnumerable<User> GetConnectedUsers()
+        {
+            return (from client in _clients select client.User);
+        }
     }
     
 }

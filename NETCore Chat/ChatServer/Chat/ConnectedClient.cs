@@ -1,15 +1,16 @@
-﻿using ChatShared;
+﻿using ChatServer.Model;
+using ChatShared;
 using ChatShared.SDK.Payload;
 
-namespace ChatServer
+namespace ChatServer.Chat
 {
     public readonly struct ConnectedClient
     {
         
-        public readonly UserPayload User;
+        public readonly User User;
         public readonly Connection Connection;
 
-        public ConnectedClient(UserPayload user, Connection connection)
+        public ConnectedClient(User user, Connection connection)
         {
             User = user;
             Connection = connection;
