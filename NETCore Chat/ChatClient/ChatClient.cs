@@ -9,7 +9,7 @@ using ChatShared.SDK.Payload;
 
 namespace ChatClient
 {
-    public class Client
+    public class ChatClient
     {
         
         public async Task Start(IPAddress address, int port)
