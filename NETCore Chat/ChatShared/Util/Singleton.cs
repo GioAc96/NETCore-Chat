@@ -1,7 +1,4 @@
-﻿using System.Security.AccessControl;
-using System.Text.Json;
-
-namespace ChatServer
+﻿namespace ChatShared.Util
 {
     public static class Singleton<T> where T : new()
     {
