@@ -12,6 +12,7 @@ namespace ChatClient.Chat
     public class ChatClient
     {
         
+        
         public async Task Start(IPAddress address, int port)
         {
 
@@ -26,7 +27,7 @@ namespace ChatClient.Chat
             Console.WriteLine($"Hello {user}");
 
             await StartChatting(connection);
-
+            
         }
 
         private async Task<UserPayload> ClientHandshake(Connection connection)
@@ -91,20 +92,25 @@ namespace ChatClient.Chat
             {
 
                 Console.Write("Type your message: ");
-                var messageBody = Console.ReadLine();
+                var chatTextBody = Console.ReadLine();
                 Console.WriteLine();
 
-                await connection.SendMessageAsync(new SendTextMessage(
-
-                    new TextPayload(messageBody)
-
-                ));
+                await SendChatText(connection, chatTextBody);
 
             }
             
         }
 
-        private async Task StartReceivingMessages(Connection connection)
+        private static async Task SendChatText(Connection connection, string body)
+        {
+            await connection.SendMessageAsync(new SendTextMessage(
+
+                new TextPayload(body)
+
+            ));
+        }
+
+        private static async void StartReceivingMessages(Connection connection)
         {
 
             while (true)
@@ -119,6 +125,6 @@ namespace ChatClient.Chat
             }
             
         }
-        
+
     }
 }

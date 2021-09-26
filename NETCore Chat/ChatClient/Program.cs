@@ -11,7 +11,7 @@ namespace ChatClient {
         {
 
             await Singleton<Chat.ChatClient>.GetInstance().Start(IPAddress.Parse("127.0.0.1"), 8000);
-            
+
             CreateHostBuilder(args).Build().Run();
             
         }
