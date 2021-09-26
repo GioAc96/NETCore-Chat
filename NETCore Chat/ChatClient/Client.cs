@@ -94,7 +94,7 @@ namespace ChatClient
                 var messageBody = Console.ReadLine();
                 Console.WriteLine();
 
-                await connection.SendMessageAsync(new SendText(
+                await connection.SendMessageAsync(new SendTextMessage(
 
                     new TextPayload(messageBody)
 
@@ -110,7 +110,7 @@ namespace ChatClient
             while (true)
             {
 
-                var receiveMessage = await connection.ReceiveMessageAsync<ForwardText>();
+                var receiveMessage = await connection.ReceiveMessageAsync<ForwardTextMessage>();
                 
                 Console.WriteLine();
                 Console.WriteLine($"{receiveMessage.Sender} says: {receiveMessage.Text.Body}");

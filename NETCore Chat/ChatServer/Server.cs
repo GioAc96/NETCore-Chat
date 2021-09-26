@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,9 +16,7 @@ namespace ChatServer
 
         private readonly HashSet<string> _userNameIndex = new HashSet<string>();
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
-        private readonly Queue<ChatText> _outgoingTexts = new Queue<ChatText>();
-        private readonly LinkedList<ChatText> _sentTexts = new LinkedList<ChatText>();
-        private Task _forwardingMessagesTask = Task.CompletedTask;
+        private readonly LinkedList<ChatText> _texts = new LinkedList<ChatText>();
 
         public async Task Start(IPAddress address, int port)
         {
@@ -39,7 +38,7 @@ namespace ChatServer
             
         }
         
-        private async Task HandleNewTcpClient(TcpClient tcpClient)
+        private async void HandleNewTcpClient(TcpClient tcpClient)
         {
 
             using var connection = new Connection(tcpClient.GetStream());
@@ -102,57 +101,48 @@ namespace ChatServer
             while (!token.IsCancellationRequested)
             {
 
-                var receivedTextPayload = (await client.Connection.ReceiveMessageAsync<SendText>()).Text;
+                var receivedTextPayload = (await client.Connection.ReceiveMessageAsync<SendTextMessage>()).Text;
 
                 Console.Write($"{client.User} says: ");
                 Console.WriteLine(receivedTextPayload.Body);
                 
-                ForwardText(new ChatText(client.User, receivedTextPayload));
+                ForwardChatText(new ChatText(client.User, receivedTextPayload));
 
             }
             
         }
 
-        private void ForwardText(ChatText chatText)
+        private void ForwardChatText(ChatText chatText)
+        {
+            
+            foreach (var client in _clients.Where(client => ! client.User.Equals(chatText.Sender)))
+            {
+                
+                SendMessageToConnectedClient(new ForwardTextMessage(chatText.Sender, chatText.Text), client);
+                
+            }
+
+            _texts.AddFirst(chatText);
+
+        }
+
+        private async void SendMessageToConnectedClient<T>(T message, ConnectedClient connectedClient) where T : IMessage
         {
 
-            _outgoingTexts.Enqueue(chatText);
-
-            if (_forwardingMessagesTask.IsCompleted)
+            try
             {
-
-                _forwardingMessagesTask = DeliverOutgoingTexts();
+                await connectedClient.Connection.SendMessageAsync(message);
+            }
+            catch (Exception)
+            {
+                
+                Console.WriteLine($"Could not deliver message to {connectedClient.User}. Removing from list of connected clients");
+                _clients.Remove(connectedClient);
 
             }
             
         }
-
-        private async Task DeliverOutgoingTexts()
-        {
-
-            while(_outgoingTexts.Count > 0)
-            {
-
-                var outgoingText = _outgoingTexts.Dequeue();
-                
-                var message = new ForwardText(outgoingText.Sender, outgoingText.Text);
-                
-                foreach (var clientNode in _clients)
-                {
-                    
-                    if (clientNode.User.Equals(outgoingText.Sender))
-                    {
-
-                        clientNode.Connection.SendMessageAsync(message);
-
-                    }
-                    
-                }
-                
-            }
-            
-        }
-
+        
     }
     
 }

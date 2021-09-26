@@ -5,18 +5,18 @@ namespace ChatShared.SDK.Messages
 {
     
     [ProtoContract]
-    public class SendText : IMessage
+    public class SendTextMessage : IMessage
     {
 
         [ProtoMember(1)]
         public readonly TextPayload Text;
         
-        public SendText(TextPayload text)
+        public SendTextMessage(TextPayload text)
         {
             Text = text;
         }
         
-        private SendText(){}
+        private SendTextMessage(){}
         
     }
 }

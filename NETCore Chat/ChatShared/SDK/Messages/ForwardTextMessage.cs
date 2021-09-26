@@ -4,7 +4,7 @@ using ProtoBuf;
 namespace ChatShared.SDK.Messages
 {
     [ProtoContract]
-    public class ForwardText : IMessage
+    public class ForwardTextMessage : IMessage
     {
 
         [ProtoMember(1)]
@@ -13,13 +13,13 @@ namespace ChatShared.SDK.Messages
         [ProtoMember(2)]
         public readonly UserPayload Sender;
 
-        public ForwardText(UserPayload sender, TextPayload text)
+        public ForwardTextMessage(UserPayload sender, TextPayload text)
         {
             Sender = sender;
             Text = text;
         }
         
-        private ForwardText() {}
+        private ForwardTextMessage() {}
         
     }
 }
