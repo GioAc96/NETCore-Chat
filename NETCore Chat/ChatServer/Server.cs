@@ -15,6 +15,9 @@ namespace ChatServer
 
         private readonly HashSet<string> _userNameIndex = new HashSet<string>();
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
+        private readonly Queue<ChatText> _outgoingTexts = new Queue<ChatText>();
+        private readonly LinkedList<ChatText> _sentTexts = new LinkedList<ChatText>();
+        private Task _forwardingMessagesTask = Task.CompletedTask;
 
         public async Task Start(IPAddress address, int port)
         {
@@ -99,23 +102,53 @@ namespace ChatServer
             while (!token.IsCancellationRequested)
             {
 
-                var receivedChatMessage = (await client.Connection.ReceiveMessageAsync<SendMessage>()).ChatMessage;
+                var receivedTextPayload = (await client.Connection.ReceiveMessageAsync<SendText>()).Text;
 
                 Console.Write($"{client.User} says: ");
-                Console.WriteLine(receivedChatMessage.Body);
+                Console.WriteLine(receivedTextPayload.Body);
                 
-                foreach (ConnectedClient otherClient in _clients)
-                {
+                ForwardText(new ChatText(client.User, receivedTextPayload));
 
-                    if (otherClient.User.Id != client.User.Id)
+            }
+            
+        }
+
+        private void ForwardText(ChatText chatText)
+        {
+
+            _outgoingTexts.Enqueue(chatText);
+
+            if (_forwardingMessagesTask.IsCompleted)
+            {
+
+                _forwardingMessagesTask = DeliverOutgoingTexts();
+
+            }
+            
+        }
+
+        private async Task DeliverOutgoingTexts()
+        {
+
+            while(_outgoingTexts.Count > 0)
+            {
+
+                var outgoingText = _outgoingTexts.Dequeue();
+                
+                var message = new ForwardText(outgoingText.Sender, outgoingText.Text);
+                
+                foreach (var clientNode in _clients)
+                {
+                    
+                    if (clientNode.User.Equals(outgoingText.Sender))
                     {
 
-                        await otherClient.Connection.SendMessageAsync(new ForwardMessage(client.User, receivedChatMessage));
+                        clientNode.Connection.SendMessageAsync(message);
 
                     }
                     
                 }
-
+                
             }
             
         }
