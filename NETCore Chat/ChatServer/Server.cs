@@ -14,7 +14,6 @@ namespace ChatServer
     public class Server
     {
 
-        private readonly HashSet<string> _userNameIndex = new HashSet<string>();
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
         private readonly LinkedList<ChatText> _texts = new LinkedList<ChatText>();
 
@@ -43,9 +42,23 @@ namespace ChatServer
 
             using var connection = new Connection(tcpClient.GetStream());
 
-            var client = new ConnectedClient(await ServerHandshake(connection), connection);
+            UserPayload user;
             
-            _clients.AddFirst(client);
+            try
+            {
+
+                user = await ServerHandshake(connection);
+
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Handshake failed.");
+                return;
+            }
+            
+            var client = new ConnectedClient(user, connection);
+            
+            ClientConnected(client);
 
             await StartChatting(client);
 
@@ -80,8 +93,9 @@ namespace ChatServer
                 }
                 else
                 {
-                    RegisterUserName(userName);
+                    
                     return userName;
+                    
                 }
                 
             }
@@ -90,8 +104,7 @@ namespace ChatServer
             
         }
 
-        private bool IsUserNameTaken(string userName) => _userNameIndex.Contains(userName);
-        private void RegisterUserName(string userName) => _userNameIndex.Add(userName);
+        private bool IsUserNameTaken(string userName) => _clients.Any(client => client.User.Name.Equals(userName));
 
         private async Task StartChatting(ConnectedClient client)
         {
@@ -101,13 +114,24 @@ namespace ChatServer
             while (!token.IsCancellationRequested)
             {
 
-                var receivedTextPayload = (await client.Connection.ReceiveMessageAsync<SendTextMessage>()).Text;
+                try
+                {
+                    var message = await client.Connection.ReceiveMessageAsync<SendTextMessage>();
+                    
+                    Console.Write($"{client.User} says: ");
+                    Console.WriteLine(message.Text.Body);
+                    
+                    ForwardChatText(new ChatText(client.User, message.Text));
+                    
+                }
+                catch (Exception)
+                {
+                    
+                    ClientDisconnected(client);
+                    break;
 
-                Console.Write($"{client.User} says: ");
-                Console.WriteLine(receivedTextPayload.Body);
+                }
                 
-                ForwardChatText(new ChatText(client.User, receivedTextPayload));
-
             }
             
         }
@@ -126,20 +150,32 @@ namespace ChatServer
 
         }
 
-        private async void SendMessageToConnectedClient<T>(T message, ConnectedClient connectedClient) where T : IMessage
+        private async void SendMessageToConnectedClient<T>(T message, ConnectedClient client) where T : IMessage
         {
 
             try
             {
-                await connectedClient.Connection.SendMessageAsync(message);
+                await client.Connection.SendMessageAsync(message);
             }
             catch (Exception)
             {
                 
-                Console.WriteLine($"Could not deliver message to {connectedClient.User}. Removing from list of connected clients");
-                _clients.Remove(connectedClient);
-
+                ClientDisconnected(client);
+                
             }
+            
+        }
+
+        private void ClientConnected(ConnectedClient client)
+        {
+            Console.WriteLine($"{client.User} connected");
+            _clients.AddFirst(client);
+        }
+
+        private void ClientDisconnected(ConnectedClient client)
+        {
+            Console.WriteLine($"{client.User} disconnected.");
+            _clients.Remove(client);
             
         }
         
