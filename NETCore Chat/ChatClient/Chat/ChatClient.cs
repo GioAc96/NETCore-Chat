@@ -9,9 +9,10 @@ using ChatShared.SDK.Payload;
 
 namespace ChatClient.Chat
 {
-    public class ChatClient
+    public class ChatClient : IDisposable, IChatClientService
     {
-        
+
+        public Connection Connection { get; private set; }
         
         public async Task Start(IPAddress address, int port)
         {
@@ -20,14 +21,14 @@ namespace ChatClient.Chat
 
             await tcpClient.ConnectAsync(address, port);
 
-            using var connection = new Connection(tcpClient.GetStream());
+            Connection = new Connection(tcpClient.GetStream());
             
-            var user = await ClientHandshake(connection);
+            var user = await ClientHandshake(Connection);
             
             Console.WriteLine($"Hello {user}");
-
-            await StartChatting(connection);
             
+            await StartChatting(Connection);
+
         }
 
         private async Task<UserPayload> ClientHandshake(Connection connection)
@@ -77,7 +78,7 @@ namespace ChatClient.Chat
 
         }
 
-        private async Task StartChatting(Connection connection)
+        public async Task StartChatting(Connection connection)
         {
             
             StartReceivingMessages(connection);
@@ -125,6 +126,17 @@ namespace ChatClient.Chat
             }
             
         }
+        
+        public void Dispose()
+        {
+            Connection?.Dispose();
+        }
 
+        public async Task SendChatText(string body)
+        {
+
+            await SendChatText(Connection, body);
+
+        }
     }
 }

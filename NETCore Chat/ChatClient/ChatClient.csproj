@@ -8,9 +8,5 @@
     <ProjectReference Include="..\ChatShared\ChatShared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Rest\Controllers" />
-  </ItemGroup>
-
 
 </Project>

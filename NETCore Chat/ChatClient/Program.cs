@@ -10,10 +10,11 @@ namespace ChatClient {
         public static async Task Main(string[] args)
         {
 
+            CreateHostBuilder(args).Build().RunAsync();
+
             await Singleton<Chat.ChatClient>.GetInstance().Start(IPAddress.Parse("127.0.0.1"), 8000);
 
-            CreateHostBuilder(args).Build().Run();
-            
+
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -21,6 +22,7 @@ namespace ChatClient {
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("http://*:5002");
                 });
     }
 }
