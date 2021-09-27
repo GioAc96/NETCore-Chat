@@ -7,10 +7,12 @@ using ChatShared;
 using ChatShared.SDK.Messages;
 using ChatShared.SDK.Payload;
 
-namespace ChatClient
+namespace ChatClient.Chat
 {
-    public class Client
+    public class ChatClient : IDisposable, IChatClientService
     {
+
+        public Connection Connection { get; private set; }
         
         public async Task Start(IPAddress address, int port)
         {
@@ -19,13 +21,13 @@ namespace ChatClient
 
             await tcpClient.ConnectAsync(address, port);
 
-            using var connection = new Connection(tcpClient.GetStream());
+            Connection = new Connection(tcpClient.GetStream());
             
-            var user = await ClientHandshake(connection);
+            var user = await ClientHandshake(Connection);
             
             Console.WriteLine($"Hello {user}");
-
-            await StartChatting(connection);
+            
+            await StartChatting(Connection);
 
         }
 
@@ -76,7 +78,7 @@ namespace ChatClient
 
         }
 
-        private async Task StartChatting(Connection connection)
+        public async Task StartChatting(Connection connection)
         {
             
             StartReceivingMessages(connection);
@@ -91,20 +93,25 @@ namespace ChatClient
             {
 
                 Console.Write("Type your message: ");
-                var messageBody = Console.ReadLine();
+                var chatTextBody = Console.ReadLine();
                 Console.WriteLine();
 
-                await connection.SendMessageAsync(new SendTextMessage(
-
-                    new TextPayload(messageBody)
-
-                ));
+                await SendChatText(connection, chatTextBody);
 
             }
             
         }
 
-        private async Task StartReceivingMessages(Connection connection)
+        private static async Task SendChatText(Connection connection, string body)
+        {
+            await connection.SendMessageAsync(new SendTextMessage(
+
+                new TextPayload(body)
+
+            ));
+        }
+
+        private static async void StartReceivingMessages(Connection connection)
         {
 
             while (true)
@@ -120,5 +127,16 @@ namespace ChatClient
             
         }
         
+        public void Dispose()
+        {
+            Connection?.Dispose();
+        }
+
+        public async Task SendChatText(string body)
+        {
+
+            await SendChatText(Connection, body);
+
+        }
     }
 }

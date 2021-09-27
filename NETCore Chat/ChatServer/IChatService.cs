@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChatServer.Model;
+using ChatShared.Util;
 
 namespace ChatServer
 {

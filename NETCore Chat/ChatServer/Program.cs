@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Threading.Tasks;
 using ChatServer.Rest;
+using ChatShared.Util;
 
 namespace ChatServer {
     
