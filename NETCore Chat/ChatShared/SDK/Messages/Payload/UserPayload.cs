@@ -1,32 +1,23 @@
 ﻿using System;
 using ProtoBuf;
 
-namespace ChatShared.SDK.Payload
+namespace ChatShared.SDK.Messages.Payload
 {
     [ProtoContract]
-    public class UserPayload : IEquatable<UserPayload> {
+    public class UserPayload : IEquatable<UserPayload>
+    {
+        [ProtoMember(1)] public readonly Guid Id;
 
-        [ProtoMember(1)]
-        public readonly Guid Id;
-        
-        [ProtoMember(2)]
-        public readonly string Name;
+        [ProtoMember(2)] public readonly string Name;
 
         public UserPayload(Guid id, string name)
         {
-            
             Id = id;
             Name = name;
-            
         }
-        
-        private UserPayload(){}
 
-        public override string ToString()
+        private UserPayload()
         {
-
-            return $"{Name}";
-
         }
 
         public bool Equals(UserPayload other)
@@ -36,11 +27,16 @@ namespace ChatShared.SDK.Payload
             return Id.Equals(other.Id);
         }
 
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((UserPayload) obj);
         }
 
@@ -49,5 +45,4 @@ namespace ChatShared.SDK.Payload
             return Id.GetHashCode();
         }
     }
-    
 }

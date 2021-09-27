@@ -1,12 +1,11 @@
-﻿using ChatServer.Model;
+﻿using System;
+using ChatServer.Model;
 using ChatShared;
-using ChatShared.SDK.Payload;
 
 namespace ChatServer.Chat
 {
-    public readonly struct ConnectedClient
+    public readonly struct ConnectedClient : IDisposable
     {
-        
         public readonly User User;
         public readonly Connection Connection;
 
@@ -16,6 +15,9 @@ namespace ChatServer.Chat
             Connection = connection;
         }
 
+        public void Dispose()
+        {
+            Connection?.Dispose();
+        }
     }
-    
 }
