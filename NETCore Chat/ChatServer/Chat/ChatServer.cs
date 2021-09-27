@@ -11,33 +11,31 @@ using ChatShared.SDK.Messages;
 
 namespace ChatServer.Chat
 {
-    public class ChatServer : IChatRepository
+    public class ChatServer : IChatRepository, IDisposable
     {
 
         private readonly LinkedList<ConnectedClient> _clients = new LinkedList<ConnectedClient>();
         private readonly LinkedList<ChatText> _texts = new LinkedList<ChatText>();
 
-        public async void Start(IPAddress address, int port)
+        public async void StartAsync(IPAddress address, int port, CancellationToken cancellationToken)
         {
             
             var tcpListener = new TcpListener(address, port);
 
             tcpListener.Start();
 
-            var token = new CancellationTokenSource().Token;
-
-            while (! token.IsCancellationRequested)
+            while (! cancellationToken.IsCancellationRequested)
             {
 
                 var tcpClient = await tcpListener.AcceptTcpClientAsync();
 
-                HandleNewTcpClient(tcpClient);
+                HandleNewTcpClientAsync(tcpClient, cancellationToken);
 
             }
             
         }
         
-        private async void HandleNewTcpClient(TcpClient tcpClient)
+        private async void HandleNewTcpClientAsync(TcpClient tcpClient, CancellationToken cancellationToken)
         {
 
             using var connection = new Connection(tcpClient.GetStream());
@@ -47,7 +45,7 @@ namespace ChatServer.Chat
             try
             {
 
-                user = await ServerHandshake(connection);
+                user = await ServerHandshakeAsync(connection, cancellationToken);
 
             }
             catch (Exception)
@@ -60,16 +58,17 @@ namespace ChatServer.Chat
             
             ClientConnected(client);
 
-            await StartChatting(client);
+            await StartForwardingIncomingMessagesAsync(client, cancellationToken);
 
         }
 
-        private async Task<User> ServerHandshake(
-            Connection connection
+        private async Task<User> ServerHandshakeAsync(
+            Connection connection,
+            CancellationToken cancellationToken
         )
         {
 
-            var userName = await ReceiveValidUserName(connection);
+            var userName = await ReceiveValidUserNameAsync(connection, cancellationToken);
             var userId = Guid.NewGuid();
             
             await connection.SendMessageAsync(new HelloMessage(userId));
@@ -78,11 +77,10 @@ namespace ChatServer.Chat
             
         }
 
-        private async Task<string> ReceiveValidUserName(Connection connection)
+        private async Task<string> ReceiveValidUserNameAsync(Connection connection, CancellationToken cancellationToken)
         {
-            CancellationToken token = new CancellationTokenSource().Token;
             
-            while (!token.IsCancellationRequested)
+            while (! cancellationToken.IsCancellationRequested)
             {
                 
                 var userName = (await connection.ReceiveMessageAsync<MyNameIsMessage>()).UserName;
@@ -106,12 +104,13 @@ namespace ChatServer.Chat
 
         private bool IsUserNameTaken(string userName) => _clients.Any(client => client.User.Name.Equals(userName));
 
-        private async Task StartChatting(ConnectedClient client)
+        private async Task StartForwardingIncomingMessagesAsync(
+            ConnectedClient client,
+            CancellationToken cancellationToken
+        )
         {
-            
-            var token = new CancellationToken();
-
-            while (!token.IsCancellationRequested)
+        
+            while (! cancellationToken.IsCancellationRequested)
             {
 
                 try
@@ -136,7 +135,9 @@ namespace ChatServer.Chat
             
         }
 
-        private void ForwardChatText(ChatText chatText)
+        private void ForwardChatText(
+            ChatText chatText
+        )
         {
             
             foreach (var client in _clients.Where(client => ! client.User.Equals(chatText.Sender)))
@@ -188,6 +189,16 @@ namespace ChatServer.Chat
         public IEnumerable<User> GetConnectedUsers()
         {
             return (from client in _clients select client.User);
+        }
+
+        public void Dispose()
+        {
+            
+            foreach (var client in _clients)
+            {
+                client.Connection.Dispose();
+            }
+            
         }
     }
     

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using ChatServer.Rest;
 using ChatShared.Util;
@@ -16,11 +17,13 @@ namespace ChatServer {
         public static async Task Main(string[] args)
         {
 
-            var chatServer = Singleton<Chat.ChatServer>.GetInstance();
+            var cancellationTokenSource = new CancellationTokenSource();
 
-            chatServer.Start(ChatIpAddress, ChatPort);
+            using var chatServer = Singleton<Chat.ChatServer>.GetInstance();
+
+            chatServer.StartAsync(ChatIpAddress, ChatPort, cancellationTokenSource.Token);
             
-            await CreateHostBuilder(args).Build().RunAsync();
+            await CreateHostBuilder(args).Build().RunAsync(cancellationTokenSource.Token);
             
         }
 

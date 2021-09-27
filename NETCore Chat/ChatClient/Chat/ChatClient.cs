@@ -5,16 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatShared;
 using ChatShared.SDK.Messages;
-using ChatShared.SDK.Payload;
+using ChatShared.SDK.Messages.Payload;
 
 namespace ChatClient.Chat
 {
     public class ChatClient : IDisposable, IChatClientService
     {
 
-        public Connection Connection { get; private set; }
+        private Connection Connection { get; set; }
         
-        public async Task Start(IPAddress address, int port)
+        public async Task StartAsync(IPAddress address, int port, CancellationToken cancellationToken)
         {
 
             using var tcpClient = new TcpClient();
@@ -23,20 +23,18 @@ namespace ChatClient.Chat
 
             Connection = new Connection(tcpClient.GetStream());
             
-            var user = await ClientHandshake(Connection);
+            var user = await ClientHandshakeAsync(Connection, cancellationToken);
             
             Console.WriteLine($"Hello {user}");
             
-            await StartChatting(Connection);
+            await StartChattingAsync(Connection, cancellationToken);
 
         }
 
-        private async Task<UserPayload> ClientHandshake(Connection connection)
+        private static async Task<UserPayload> ClientHandshakeAsync(Connection connection, CancellationToken cancellationToken)
         {
 
-            var token = new CancellationToken();
-
-            while (!token.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
 
                 var userName = PromptForName();
@@ -50,7 +48,9 @@ namespace ChatClient.Chat
 
                     return new UserPayload(helloMessage.UserId, userName);
 
-                } else if (handshakeResult is NameTakenMessage)
+                } 
+                
+                if (handshakeResult is NameTakenMessage)
                 {
                     
                     Console.WriteLine("Name is already taken.");
@@ -60,6 +60,7 @@ namespace ChatClient.Chat
             }
 
             throw new OperationCanceledException();
+
 
         }
         
@@ -71,25 +72,19 @@ namespace ChatClient.Chat
             
         }
 
-        private static string PromptForMessage()
-        {
-            Console.WriteLine("Type a message: ");
-            return Console.ReadLine();
-
-        }
-
-        public async Task StartChatting(Connection connection)
+        
+        private static async Task StartChattingAsync(Connection connection, CancellationToken cancellationToken)
         {
             
-            StartReceivingMessages(connection);
-            await StartSendingMessages(connection);
+            StartReceivingMessages(connection, cancellationToken);
+            await StartSendingMessages(connection, cancellationToken);
 
         }
 
-        private async Task StartSendingMessages(Connection connection)
+        private static async Task StartSendingMessages(Connection connection, CancellationToken cancellationToken)
         {
-
-            while (true)
+            
+            while (! cancellationToken.IsCancellationRequested)
             {
 
                 Console.Write("Type your message: ");
@@ -111,10 +106,10 @@ namespace ChatClient.Chat
             ));
         }
 
-        private static async void StartReceivingMessages(Connection connection)
+        private static async void StartReceivingMessages(Connection connection, CancellationToken cancellationToken)
         {
 
-            while (true)
+            while (! cancellationToken.IsCancellationRequested)
             {
 
                 var receiveMessage = await connection.ReceiveMessageAsync<ForwardTextMessage>();

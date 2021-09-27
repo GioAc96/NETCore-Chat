@@ -3,14 +3,14 @@
     public static class Singleton<T> where T : new()
     {
 
-        private static readonly object _instanceLock = new object();
+        private static readonly object InstanceLock = new object();
         private static T _instance = default(T);
 
         public static T GetInstance() {
             
             if (_instance != null) return _instance;
             
-            lock(_instanceLock)
+            lock(InstanceLock)
             {
                 _instance ??= new T();
             }

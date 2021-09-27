@@ -1,4 +1,4 @@
-﻿using ChatShared.SDK.Payload;
+﻿using ChatShared.SDK.Messages.Payload;
 using ProtoBuf;
 
 namespace ChatShared.SDK.Messages

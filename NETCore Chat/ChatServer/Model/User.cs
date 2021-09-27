@@ -1,5 +1,5 @@
 ﻿using System;
-using ChatShared.SDK.Payload;
+using ChatShared.SDK.Messages.Payload;
 
 namespace ChatServer.Model
 {

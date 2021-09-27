@@ -1,6 +1,6 @@
 ﻿using ProtoBuf;
 
-namespace ChatShared.SDK.Payload
+namespace ChatShared.SDK.Messages.Payload
 {
     [ProtoContract]
     public class TextPayload {

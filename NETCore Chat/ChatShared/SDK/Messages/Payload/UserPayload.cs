@@ -1,7 +1,7 @@
 ﻿using System;
 using ProtoBuf;
 
-namespace ChatShared.SDK.Payload
+namespace ChatShared.SDK.Messages.Payload
 {
     [ProtoContract]
     public class UserPayload : IEquatable<UserPayload> {

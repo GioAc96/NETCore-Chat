@@ -57,7 +57,7 @@ namespace ChatShared
         public void Dispose()
         {
             
-            _stream.Dispose();
+            _stream?.Dispose();
             
         }
         
