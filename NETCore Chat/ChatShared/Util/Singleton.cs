@@ -2,22 +2,19 @@
 {
     public static class Singleton<T> where T : new()
     {
-
         private static readonly object InstanceLock = new object();
-        private static T _instance = default(T);
+        private static T _instance;
 
-        public static T GetInstance() {
-            
+        public static T GetInstance()
+        {
             if (_instance != null) return _instance;
-            
-            lock(InstanceLock)
+
+            lock (InstanceLock)
             {
                 _instance ??= new T();
             }
-            
-            return _instance; 
-            
-        } 
-        
+
+            return _instance;
+        }
     }
 }

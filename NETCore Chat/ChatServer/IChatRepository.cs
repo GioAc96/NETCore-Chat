@@ -5,10 +5,7 @@ namespace ChatServer
 {
     public interface IChatRepository
     {
-
         IEnumerable<ChatText> GetTexts();
         IEnumerable<User> GetConnectedUsers();
-
     }
-    
 }

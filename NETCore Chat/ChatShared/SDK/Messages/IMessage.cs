@@ -8,6 +8,5 @@ namespace ChatShared.SDK.Messages
     [ProtoInclude(103, typeof(ForwardTextMessage))]
     public interface IMessage
     {
-        
     }
 }
