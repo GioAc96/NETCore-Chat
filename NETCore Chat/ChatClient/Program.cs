@@ -13,11 +13,13 @@ namespace ChatClient
         public static async Task Main(string[] args)
         {
             var tokenSource = new CancellationTokenSource();
-
-            CreateHostBuilder(args).Build().RunAsync(tokenSource.Token);
-
-            await Singleton<Chat.ChatClient>.GetInstance()
+            
+            using IChatClientService chatClientService = await new Chat.ChatClient()
                 .StartAsync(IPAddress.Parse("127.0.0.1"), 8000, tokenSource.Token);
+
+            SettableSingleton<IChatClientService>.SetInstance(chatClientService);
+
+            await CreateHostBuilder(args).Build().RunAsync(tokenSource.Token);
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)

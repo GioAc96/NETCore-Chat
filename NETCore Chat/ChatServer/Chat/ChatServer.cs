@@ -47,7 +47,7 @@ namespace ChatServer.Chat
 
         private async void HandleNewTcpClientAsync(TcpClient tcpClient, CancellationToken cancellationToken)
         {
-            using var connection = new Connection(tcpClient.GetStream());
+            using var connection = new Connection(tcpClient);
 
             User user;
 

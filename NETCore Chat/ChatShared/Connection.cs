@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using ChatShared.SDK.Messages;
 using ProtoBuf;
@@ -10,16 +11,11 @@ namespace ChatShared
     {
         private const PrefixStyle PrefixStyle = ProtoBuf.PrefixStyle.Base128;
 
-        private readonly Stream _stream;
+        private readonly TcpClient _tcpClient;
 
-        public Connection(Stream stream)
+        public Connection(TcpClient tcpClient)
         {
-            _stream = stream;
-        }
-
-        public void Dispose()
-        {
-            _stream?.Dispose();
+            _tcpClient = tcpClient;
         }
 
         public async Task SendMessageAsync<T>(T message) where T : IMessage
@@ -29,18 +25,23 @@ namespace ChatShared
 
         public void SendMessage<T>(T message) where T : IMessage
         {
-            Serializer.SerializeWithLengthPrefix(_stream, message, PrefixStyle);
-            _stream.Flush();
+            Serializer.SerializeWithLengthPrefix(_tcpClient.GetStream(), message, PrefixStyle);
+            _tcpClient.GetStream().Flush();
         }
 
         public T ReceiveMessage<T>() where T : IMessage
         {
-            return Serializer.DeserializeWithLengthPrefix<T>(_stream, PrefixStyle);
+            return Serializer.DeserializeWithLengthPrefix<T>(_tcpClient.GetStream(), PrefixStyle);
         }
 
         public async Task<T> ReceiveMessageAsync<T>() where T : IMessage
         {
             return await Task.Run(ReceiveMessage<T>);
+        }
+
+        public void Dispose()
+        {
+            _tcpClient?.Dispose();
         }
     }
 }
