@@ -9,33 +9,49 @@ using ChatShared.SDK.Messages.Payload;
 
 namespace ChatClient.Chat
 {
-    public class ChatClient : IDisposable, IChatClientService
+    public class ChatClient 
     {
-        private Connection Connection { get; set; }
 
-        public async Task SendChatText(string body)
+        public sealed class ChatClientService : IChatClientService, IDisposable
         {
-            await SendChatText(Connection, body);
+
+            private readonly Connection _connection;
+
+            public ChatClientService(Connection connection)
+            {
+                _connection = connection;
+            }
+
+
+            public async Task SendChatText(string body)
+            {
+                
+                await _connection.SendMessageAsync(new SendTextMessage(new TextPayload(body)));
+                
+            }
+
+            public void Dispose()
+            {
+                _connection?.Dispose();
+            }
         }
-
-        public void Dispose()
+   
+        public async Task<IChatClientService> StartAsync(IPAddress address, int port, CancellationToken cancellationToken)
         {
-            Connection?.Dispose();
-        }
-
-        public async Task StartAsync(IPAddress address, int port, CancellationToken cancellationToken)
-        {
-            using var tcpClient = new TcpClient();
+            var tcpClient = new TcpClient();
 
             await tcpClient.ConnectAsync(address, port);
 
-            Connection = new Connection(tcpClient.GetStream());
+            var connection = new Connection(tcpClient);
 
-            var user = await ClientHandshakeAsync(Connection, cancellationToken);
+            var user = await ClientHandshakeAsync(connection, cancellationToken);
 
             Console.WriteLine($"Hello {user}");
 
-            await StartChattingAsync(Connection, cancellationToken);
+            Task.Run(() => StartChatting(connection, cancellationToken));
+
+            return new ChatClientService(connection);
+
         }
 
         private static async Task<UserPayload> ClientHandshakeAsync(Connection connection,
@@ -64,15 +80,15 @@ namespace ChatClient.Chat
         }
 
 
-        private static async Task StartChattingAsync(Connection connection, CancellationToken cancellationToken)
+        private static void StartChatting(Connection connection, CancellationToken cancellationToken)
         {
-            StartReceivingMessages(connection, cancellationToken);
-            await StartSendingMessages(connection, cancellationToken);
+            StartReceivingMessagesAsync(connection, cancellationToken);
+            StartSendingMessagesAsync(connection, cancellationToken);
         }
 
-        private static async Task StartSendingMessages(Connection connection, CancellationToken cancellationToken)
+        private static async void StartSendingMessagesAsync(Connection connection, CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (! cancellationToken.IsCancellationRequested)
             {
                 Console.Write("Type your message: ");
                 var chatTextBody = Console.ReadLine();
@@ -89,7 +105,7 @@ namespace ChatClient.Chat
             ));
         }
 
-        private static async void StartReceivingMessages(Connection connection, CancellationToken cancellationToken)
+        private static async void StartReceivingMessagesAsync(Connection connection, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
